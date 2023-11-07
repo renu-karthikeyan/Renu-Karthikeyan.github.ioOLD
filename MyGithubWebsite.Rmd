@@ -1,0 +1,11 @@
+---
+title: "My GitHub Website"
+author: "Renu Karthikeyan"
+date: "2023-11-07"
+output: html_document
+---
+
+# Welcome!
+
+####  View the About Me Tab or browse some projects related to the Southern Methodist University (SMU) Data Science Masters Program!
+

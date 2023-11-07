@@ -1,0 +1,13 @@
+---
+title: "About Me"
+author: "Renu Karthikeyan"
+output: html_document
+---
+## About Me
+
+###Hi! My name is Renu Karthikeyan. I am from Dallas, Texas, and live in the Denver Area. 
+
+###I am passionate about Carnatic Music, Indian Classical Dance, and finance. I got my Bachelors degree in Finance with a focus on corporate finance from the University of Texas at Dallas (UTD). I currently work for Comcast in Denver. 
+
+
+
