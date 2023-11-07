@@ -1,0 +1,427 @@
+---
+title: "Beers and Breweries Analysis"
+author: "Joel Laskow and Renu Karthikeyan"
+date: "October 2023"
+output:
+  html_document: default
+  #word_document: default
+  #pdf_document: default
+---
+
+# Statement of Purpose:
+
+Esteemed members of Budweiser's leadership team, today, we have the privilege of presenting a comprehensive analysis of beers and brewery data, aimed at uncovering key insights and trends that can significantly impact our business strategy.The purpose of this document is to address lingering questions regarding beer production within the Budweiser brewing company, and to make this information accessible and actionable. 
+
+The following presentation highlights both the exciting discoveries we have made and the actionable insights derived from the data. Thank you for your time, and we look forward to empowering Budweiser with data-driven wisdom.
+
+
+```{r}
+# Libraries Used
+library(base)
+library(dplyr)
+library(caret)
+library(tidyverse)
+library(ggplot2)
+library(naniar)
+library(class)
+library(GGally)
+library(tinytex)
+options(tinytex.verbose = TRUE)
+```
+
+```{r}
+#Breweries <- read.csv("/cloud/project/DS 6306/Datasets/Breweries.csv")
+#Beers <- read.csv("/cloud/project/DS 6306/Datasets/Beers (1).csv")
+#setwd("/Users/coolp/Desktop/Learning/SMU/Fall 2023/DS 6306/group project 1")
+
+breweries <- read.csv("/Users/coolp/Desktop/Learning/SMU/Fall 2023/DS 6306/group project 1/Breweries.csv")
+beers <- read.csv("/Users/coolp/Desktop/Learning/SMU/Fall 2023/DS 6306/group project 1/Beers.csv")
+
+#Brewery Data
+breweries<-data.frame(breweries)
+
+# Beer Data 
+beers<-data.frame(beers)
+colnames(beers)[5]="Brew_ID"
+
+```
+
+
+```{r}
+# Merged Data Sets by brewery ID:
+
+df_bud<-merge(beers,breweries, by="Brew_ID")
+```
+
+
+
+# First 6 Rows of the Merged Dataset
+```{r}
+head(df_bud, 6)
+```
+
+# Final 6 Rows of the Merged Dataset
+```{r}
+tail(na.omit(df_bud), 6)
+```
+
+
+
+# Addressing Missing (NA) Values
+
+```{r}
+# We visualize the position of all NA values within the dataset
+vis_miss(df_bud) 
+summary(df_bud)
+```
+ - Visualization of all missing (NA) values indicates 3% of ABV Values are reported as NA. 42% of IBU values (1005) are reported as NA. The values seem to be missing completely at random so there are 2 options to deal with the missing data. 
+ - Removing this quantity of missing values would substantially reduced the size of our data set by approximately 1067 records.
+ - Solution:
+   The missing values show no apparent pattern in the data set, suggesting that they are randomly missing. Under this condition, it is best to impute the missing values with the respective mean ABV and IBU values.
+
+
+```{r}
+#Impute NA Values with mean from IBU and ABV columns
+df_bud$IBU[is.na(df_bud$IBU)] <- mean(df_bud$IBU, na.rm = TRUE)
+df_bud$ABV[is.na(df_bud$ABV)] <- mean(df_bud$ABV, na.rm = TRUE)
+
+```
+
+ 
+# How Many Breweries are in Each State?
+```{r}
+breweries$State=factor(breweries$State)
+
+
+breweries_per_state <- breweries %>% group_by(State)%>%tally(name="count")
+ 
+breweries_per_state
+
+ggplot(breweries_per_state, aes(x = State, y = count, fill = State)) +
+  geom_bar(stat="identity", width=0.7) +
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+
+max(breweries_per_state$count)
+ 
+```
+- The states with the most breweries are Colorado and California. Colorado has 47 breweries, while California has 39.Economic fluctuations within these 2 states might have the greatest impact on production (like droughts, recessions, or supply chain issues)
+
+
+# Calculate Median Alcohol Content by State:
+
+```{r}
+#Build a new dataframe for median alcohol content by state
+
+ABV_Summary_by_State<-aggregate(df_bud$ABV, list(df_bud$State),median)
+
+ABV<-data.frame(ABV_Summary_by_State)
+
+names(ABV)[1]<-"State"
+names(ABV)[2]<-"Median_ABV"
+
+# Build a new dataframe for median IBU by state
+IBU_Summary_by_State<-aggregate(df_bud$IBU,list(df_bud$State),median)
+  
+IBU<-data.frame(IBU_Summary_by_State)
+
+names(IBU)[1]<-"State"
+names(IBU)[2]<-"Median_IBU"
+ 
+```
+
+
+# Median IBU by State
+
+```{r}
+
+ggplot(IBU, aes(x=State, y=Median_IBU))+
+  geom_bar(stat="identity", position="dodge", color="black")+
+  labs(title="Median Bitterness (IBU) By State", xlab="State",ylab="Median_ABV")+
+  theme_minimal()
+
+max(IBU$Median_IBU)
+
+```
+
+- The state with the highest IBU (most bitterness) is West Virginia with a median IBU of 57.5. Here, we see that the means are all homogeneous, and it is in line with the imputation done earlier (nearly 42% of the data was missing and was imputed with the respective mean IBU). 
+
+#Median ABV by State
+
+```{r}
+ABV_Plot <- ggplot(ABV, aes(x = factor(State), y = Median_ABV)) +
+  geom_bar(stat="identity", width=0.9, color="black", position = position_dodge(width = 0.9)) +
+  labs(title = "Median Alcohol Content by State", x="State", y="Alcohol by Volume (ABV)") +
+  theme(axis.text.x = element_text(angle = 75, hjust = 1)) 
+
+print(ABV_Plot)
+
+max(ABV$Median_ABV)
+
+```
+
+- The maximum median ABV is .0625 for District of Columbia. The states with highest alcohol content are 1. District of Columbia, 2. Kentucky, 3.Michigan, 4. New Mexico, and 5. West Virginia. 
+
+
+```{r}
+
+library(ggplot2)
+
+IBU_Plot <- ggplot(IBU, aes(x = State, y = Median_IBU)) +
+  geom_bar(stat = "identity", width = 0.7, fill = "blue") +  # Adjusted width and added fill color
+  labs(title = "Median IBU by State") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+IBU_Plot
+
+```
+
+
+# State with Maximum ABV
+```{r}
+max_abv_row <- df_bud[which.max(df_bud$ABV), ]
+
+# Print the state with the maximum ABV
+print("State with Maximum ABV:")
+print(max_abv_row$State)
+```
+- This is the max ABV in general from the data set.This is not the max of median ABV.  It is from Boulder, CO. 
+
+#State with Max Median ABV
+```{r}
+
+ABV[ABV$Median_ABV==max(ABV$Median_ABV),]
+
+```
+- As mentioned earlier, the state with the max median ABV is DC with .0625. 
+
+# State with the Most Bitter Beer (by IBU)
+
+```{r}
+
+max_IBU_row <- df_bud[which.max(df_bud$IBU), ]
+
+# Print the state with the maximum ABV
+print("State with Maximum IBU:")
+print(max_IBU_row$State) 
+
+```
+ 
+- The state with the most bitter beer from the data set is Oregon. This is not the max of median IBU.
+
+# State with Highest Median Bitterness
+```{r}
+IBU[IBU$Median_IBU==max(IBU$Median_IBU),] 
+```
+- As mentioned earlier, the state with the highest median bitterness is West Virginia with a median IBU of 57.5. 
+
+# ABV Distribution:
+
+```{r}
+df_bud %>%
+  ggplot(aes(x = ABV)) +
+  geom_histogram(binwidth = 0.001, fill = "purple", color = "black", alpha = 0.5) +
+  geom_density(color = "green") +  
+  labs(title = "Distribution of Alcohol by Volume", xlab="ABV", ylab="Count")
+
+```
+- Here we see that most beers fall around the .05 ABV mark. The distribution is right skewed, and not a normal distribution or bell curve. 
+
+#Observations on Bitterness vs ABV:
+```{r}
+#ggplot(df_bud, aes(x=ABV, y=IBU, na.rm=TRUE))+ geom_point(aes(color=factor(Style)))+ stat_smooth(method="lm",linewidth=1)
+
+#ggplot(df_bud, aes(x=IBU, y=ABV, na.rm=TRUE))+
+  #geom_point(aes(color=factor(Style)))+ stat_smooth(method="lm",size=1)+ labs(title="IBU vs ABV")
+
+df_bud %>% ggplot(aes (x=ABV, y = IBU, color = Ounces)) + geom_point(alpha = 0.7) + labs(title = "Scatterplot of ABV v. IBU", x = "ABV", y = "IBU") + stat_smooth(method = 'lm', linewidth = 1)
+
+```
+- Here we can see what seems to be a slight positive linear trend showing that as the alcohol content (ABV) increases, the IBU slightly increases as well. There is a constant line also seen, with some outliers too. We can also see that most beers are 10oz. Most beers seem to fall around an ABV of 0.05, supporting what was seen in the distribution of ABV graph. 
+
+# Using IBU and ABV to Predict Whether a Beer is an Ale Using K Nearest Neighbors (KNN)
+```{r}
+
+# We will first filter out all styles that are not Ales 
+
+df_Ales <- df_bud %>% filter(grepl("Ale|IPA|PA", Style, ignore.case = TRUE))
+
+
+#We will classify out filtered beers by "IPA" or "Not_IPA"
+df_Ales$Is_IPA <- ifelse(grepl("Indian Pale Ale|IPA", df_Ales$Style, ignore.case = TRUE), "IPA", "Non_IPA")
+
+df_Ales$Is_IPA<-factor(df_Ales$Is_IPA) 
+  
+```
+
+
+```{r}
+iterations <- 500
+numks <- 10
+percentsplit <- 0.8
+
+# Initialize an empty data frame to store results
+results_df <- data.frame(accuracy = numeric(0), k = numeric(0))
+
+for (j in 1:iterations) {
+  trainIndices <- sample(1:nrow(df_Ales), round(percentsplit * nrow(df_Ales)))
+  train <- df_Ales[trainIndices, ]
+  test <- df_Ales[-trainIndices, ]
+  
+  for (i in 1:numks) {
+    classifications <- knn(train[, c("ABV", "IBU")], test[, c("ABV", "IBU")], train$Is_IPA, prob = TRUE, k = i)
+    CM <- confusionMatrix(table(classifications, test$Is_IPA))
+    
+    # Append the accuracy and k value to the results data frame
+    results_df <- rbind(results_df, data.frame(accuracy = CM$overall["Accuracy"], k = i))
+  } 
+}
+
+results_df<-aggregate(results_df$accuracy,list(results_df$k),mean)
+
+results_df_named<-results_df
+names(results_df_named) <- c("k", "Average_Accuracy")
+
+```
+
+```{r}
+
+#We will build an Acc vs K plot to assess optimal k
+
+ggplot(results_df_named, aes(x = k, y = `Average_Accuracy`)) +
+  geom_line()+
+  labs(title = "Average Accuracy vs K", xlab="k", ylab="Average Accuracy")
+
+```
+
+# Accuracy Plot Shows 5 as Optimal K:
+
+```{r}
+trainIndex <- sample(1:nrow(df_Ales), round(percentsplit * nrow(df_Ales)))
+  train <- df_Ales[trainIndex, ]
+  test <- df_Ales[-trainIndex, ]
+  
+    classifications <- knn(train[, c("ABV", "IBU")], test[, c("ABV", "IBU")], train$Is_IPA, prob = TRUE, k = 5)
+    CM <- confusionMatrix(table(classifications, test$Is_IPA))
+
+CM
+``` 
+- Final KNN model delivers 83.86% accuracy. Accuracy may differ with higher iterations during training. Accuracy could also be higher if there were not missing values present in the ABV and IBU columns. 
+
+
+# Gathering Additional Insights
+```{r}
+
+# Renu charted ABV associated with different styles of beer
+df_bud %>% ggplot(aes(x = ABV, y = State, color = Ounces)) + geom_point(alpha = 0.7) + 
+  labs(title = "ABV by Style", x = "ABV", y = "Style")
+```
+- Here, we can see that beers produced by most states are 10 oz. They also generally fall between a range of 0.05 to 0.07 ABV. 
+
+```{r}
+# Renu then charted the average volume in Ounces per beer by State. The results suggest Colorado (CO) produces the largest beers
+df_bud %>% ggplot(aes(x = State, color = Ounces)) + geom_bar(alpha = 0.7) + 
+  labs(title = "Ounces by State", x = "State", y = "Ounces") + theme_minimal()
+```
+- It looks like Colorado and California produce the beer with the most volume (Oz); they also have the most breweries (as mentioned earlier). We think this would be the top 2 keystone states for production within the US. Something to keep in mind regarding supply chain issues if they were to arise. 
+
+```{r}
+# Renu then sought to compare the mean ounces associated with each style of beer
+df_bud %>%
+
+  ggplot(aes(x = reorder(Style, -Ounces), y = Ounces)) +
+
+  geom_bar(stat = "identity", alpha = 0.7) +
+
+  labs(title = "Ounces by Style", x = "Style", y = "Ounces") +
+
+  theme_minimal() +
+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+
+```
+
+- It looks like the American IPA style has the most ounces (style wise); American Pale Ale is runner up.
+
+```{r}
+# Joel built a data frame of the % ABV misreports per State
+eda_bud<-merge(beers,breweries, by="Brew_ID")
+
+eda_bud<-eda_bud%>%mutate(ABV_Errors=ifelse(is.na(ABV), 1, 0))
+
+eda_bud<-eda_bud%>%mutate(IBU_Errors=ifelse(is.na(IBU), 1,0))
+
+
+agg_ABV_NA<- aggregate(eda_bud$ABV_Errors, by=list(eda_bud$State), FUN=sum)
+
+colnames(agg_ABV_NA)<-c("State","Brews_With_Missing_ABV")
+
+totalbeers<-(aggregate(eda_bud$ABV_Errors,by=list(eda_bud$State), FUN=length))
+
+colnames(totalbeers)<-c("State","Total_Brews_From_State")
+
+
+agg_ABV_NA<-data.frame(agg_ABV_NA)
+
+
+agg_ABV_NA$Percent<-agg_ABV_NA$Brews_With_Missing_ABV/totalbeers$Total_Brews_From_State
+
+
+ABV_NAs_Per_State<-merge(agg_ABV_NA,totalbeers, by="State")
+
+```
+```{r}
+# Joel then built a scatterplot comparing variety of beers produced to percent of ABVs misreported
+
+ggplot(ABV_NAs_Per_State, aes(x = Total_Brews_From_State, y = Percent)) +
+  geom_point() +
+  geom_smooth(method=lm)+
+  labs(x = "Brews Produced", y = "Percentage of Brews With Missing ABVs")
+```
+- There is not a clear linear relationship present between the missing values for ABV based on the number or variety of brews produced. 
+
+# IBU Misreport was Compared to Beer Variety by State
+```{r}
+
+# Joel built a dataframe of the % ABV misreports per State
+eda_bud<-merge(beers,breweries, by="Brew_ID")
+
+eda_bud<-eda_bud%>%mutate(ABV_Errors=ifelse(is.na(ABV), 1, 0))
+
+
+
+eda_bud<-eda_bud%>%mutate(IBU_Errors=ifelse(is.na(IBU), 1,0))
+
+
+agg_IBU_NA<- aggregate(eda_bud$IBU_Errors, by=list(eda_bud$State), FUN=sum)
+
+
+colnames(agg_IBU_NA)<-c("State","Brews_With_Missing_IBU")
+
+totalbeers<-(aggregate(eda_bud$IBU_Errors,by=list(eda_bud$State), FUN=length))
+
+colnames(totalbeers)<-c("State","Total_Brews_From_State")
+
+
+agg_IBU_NA<-data.frame(agg_IBU_NA)
+
+
+agg_IBU_NA$Percent<-agg_IBU_NA$Brews_With_Missing_IBU/totalbeers$Total_Brews_From_State
+
+
+IBU_NAs_Per_State<-merge(agg_IBU_NA,totalbeers, by="State")
+
+head(IBU_NAs_Per_State)
+
+ 
+ggplot(IBU_NAs_Per_State, aes(x = Total_Brews_From_State, y = Percent)) +
+  geom_point() +
+  geom_smooth(method=lm)+
+  labs(title="IBU Misreport Frequency vs Beer Variety", x = "Brews Produced", y = "Percentage of Brews With Missing IBUs")
+```
+- There is a slightly positive linear relationship present. We cannot determine anything based of a visual, and for the future, could do some regression analysis to investigate and determine if there is a correlation between the percentage of missing IBUs based off the number or variety of brews produced. 
+
+
+# Thank You
+
+This concludes our presentation and analysis. Thank you for your time and we look forward to empowering Budweiser with data-driven wisdom. If you have any questions, please feel free to reach out to any of us, our emails are in the attached PowerPoint presentation. Thank you!
+

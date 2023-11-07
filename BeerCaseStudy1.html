@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Joel Laskow and Renu Karthikeyan" />
+
+
+<title>Beers and Breweries Analysis</title>
+
+<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">My Website</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="MyGithubWebsite.html">Home</a>
+</li>
+<li>
+  <a href="BeerCaseStudy1.html">Beer Case Study</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Beers and Breweries Analysis</h1>
+<h4 class="author">Joel Laskow and Renu Karthikeyan</h4>
+<h4 class="date">October 2023</h4>
+
+</div>
+
+
+<div id="statement-of-purpose" class="section level1">
+<h1>Statement of Purpose:</h1>
+<p>Esteemed members of Budweiser’s leadership team, today, we have the
+privilege of presenting a comprehensive analysis of beers and brewery
+data, aimed at uncovering key insights and trends that can significantly
+impact our business strategy.The purpose of this document is to address
+lingering questions regarding beer production within the Budweiser
+brewing company, and to make this information accessible and
+actionable.</p>
+<p>The following presentation highlights both the exciting discoveries
+we have made and the actionable insights derived from the data. Thank
+you for your time, and we look forward to empowering Budweiser with
+data-driven wisdom.</p>
+<pre class="r"><code># Libraries Used
+library(base)
+library(dplyr)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>library(caret)</code></pre>
+<pre><code>## Loading required package: ggplot2</code></pre>
+<pre><code>## Loading required package: lattice</code></pre>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## ── Attaching core tidyverse packages ─────────────────────────────────── tidyverse 2.0.0 ──
+## ✔ forcats   1.0.0     ✔ stringr   1.5.0
+## ✔ lubridate 1.9.2     ✔ tibble    3.2.1
+## ✔ purrr     1.0.2     ✔ tidyr     1.3.0
+## ✔ readr     2.1.4</code></pre>
+<pre><code>## ── Conflicts ───────────────────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()
+## ✖ purrr::lift()   masks caret::lift()
+## ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+<pre class="r"><code>library(ggplot2)
+library(naniar)
+library(class)
+library(GGally)</code></pre>
+<pre><code>## Registered S3 method overwritten by &#39;GGally&#39;:
+##   method from   
+##   +.gg   ggplot2</code></pre>
+<pre class="r"><code>library(tinytex)
+options(tinytex.verbose = TRUE)</code></pre>
+<pre class="r"><code>#Breweries &lt;- read.csv(&quot;/cloud/project/DS 6306/Datasets/Breweries.csv&quot;)
+#Beers &lt;- read.csv(&quot;/cloud/project/DS 6306/Datasets/Beers (1).csv&quot;)
+#setwd(&quot;/Users/coolp/Desktop/Learning/SMU/Fall 2023/DS 6306/group project 1&quot;)
+
+breweries &lt;- read.csv(&quot;/Users/coolp/Desktop/Learning/SMU/Fall 2023/DS 6306/group project 1/Breweries.csv&quot;)
+beers &lt;- read.csv(&quot;/Users/coolp/Desktop/Learning/SMU/Fall 2023/DS 6306/group project 1/Beers.csv&quot;)
+
+#Brewery Data
+breweries&lt;-data.frame(breweries)
+
+# Beer Data 
+beers&lt;-data.frame(beers)
+colnames(beers)[5]=&quot;Brew_ID&quot;</code></pre>
+<pre class="r"><code># Merged Data Sets by brewery ID:
+
+df_bud&lt;-merge(beers,breweries, by=&quot;Brew_ID&quot;)</code></pre>
+</div>
+<div id="first-6-rows-of-the-merged-dataset" class="section level1">
+<h1>First 6 Rows of the Merged Dataset</h1>
+<pre class="r"><code>head(df_bud, 6)</code></pre>
+<pre><code>##   Brew_ID        Name.x Beer_ID   ABV IBU                               Style Ounces
+## 1       1  Get Together    2692 0.045  50                        American IPA     16
+## 2       1 Maggie&#39;s Leap    2691 0.049  26                  Milk / Sweet Stout     16
+## 3       1    Wall&#39;s End    2690 0.048  19                   English Brown Ale     16
+## 4       1       Pumpion    2689 0.060  38                         Pumpkin Ale     16
+## 5       1    Stronghold    2688 0.060  25                     American Porter     16
+## 6       1   Parapet ESB    2687 0.056  47 Extra Special / Strong Bitter (ESB)     16
+##               Name.y        City State
+## 1 NorthGate Brewing  Minneapolis    MN
+## 2 NorthGate Brewing  Minneapolis    MN
+## 3 NorthGate Brewing  Minneapolis    MN
+## 4 NorthGate Brewing  Minneapolis    MN
+## 5 NorthGate Brewing  Minneapolis    MN
+## 6 NorthGate Brewing  Minneapolis    MN</code></pre>
+</div>
+<div id="final-6-rows-of-the-merged-dataset" class="section level1">
+<h1>Final 6 Rows of the Merged Dataset</h1>
+<pre class="r"><code>tail(na.omit(df_bud), 6)</code></pre>
+<pre><code>##      Brew_ID                           Name.x Beer_ID   ABV IBU                 Style
+## 2386     545        Pyramid Hefeweizen (2011)     399 0.052  18            Hefeweizen
+## 2387     545        Haywire Hefeweizen (2010)      82 0.052  18            Hefeweizen
+## 2388     546           Rumspringa Golden Bock     392 0.066  30 Maibock / Helles Bock
+## 2389     546    Lancaster German Style Kölsch     195 0.048  28                Kölsch
+## 2390     547 Common Sense Kentucky Common Ale     382 0.053  22    American Brown Ale
+## 2391     547                   Upstate I.P.W.     381 0.065  70          American IPA
+##      Ounces                    Name.y      City State
+## 2386     12         Pyramid Breweries   Seattle    WA
+## 2387     16         Pyramid Breweries   Seattle    WA
+## 2388     12 Lancaster Brewing Company Lancaster    PA
+## 2389     12 Lancaster Brewing Company Lancaster    PA
+## 2390     16   Upstate Brewing Company    Elmira    NY
+## 2391     12   Upstate Brewing Company    Elmira    NY</code></pre>
+</div>
+<div id="addressing-missing-na-values" class="section level1">
+<h1>Addressing Missing (NA) Values</h1>
+<pre class="r"><code># We visualize the position of all NA values within the dataset
+vis_miss(df_bud) </code></pre>
+<p><img src="BeerCaseStudy1_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<pre class="r"><code>summary(df_bud)</code></pre>
+<pre><code>##     Brew_ID         Name.x             Beer_ID            ABV               IBU        
+##  Min.   :  1.0   Length:2410        Min.   :   1.0   Min.   :0.00100   Min.   :  4.00  
+##  1st Qu.: 94.0   Class :character   1st Qu.: 808.2   1st Qu.:0.05000   1st Qu.: 21.00  
+##  Median :206.0   Mode  :character   Median :1453.5   Median :0.05600   Median : 35.00  
+##  Mean   :232.7                      Mean   :1431.1   Mean   :0.05977   Mean   : 42.71  
+##  3rd Qu.:367.0                      3rd Qu.:2075.8   3rd Qu.:0.06700   3rd Qu.: 64.00  
+##  Max.   :558.0                      Max.   :2692.0   Max.   :0.12800   Max.   :138.00  
+##                                                      NA&#39;s   :62        NA&#39;s   :1005    
+##     Style               Ounces         Name.y              City          
+##  Length:2410        Min.   : 8.40   Length:2410        Length:2410       
+##  Class :character   1st Qu.:12.00   Class :character   Class :character  
+##  Mode  :character   Median :12.00   Mode  :character   Mode  :character  
+##                     Mean   :13.59                                        
+##                     3rd Qu.:16.00                                        
+##                     Max.   :32.00                                        
+##                                                                          
+##     State          
+##  Length:2410       
+##  Class :character  
+##  Mode  :character  
+##                    
+##                    
+##                    
+## </code></pre>
+<ul>
+<li>Visualization of all missing (NA) values indicates 3% of ABV Values
+are reported as NA. 42% of IBU values (1005) are reported as NA. The
+values seem to be missing completely at random so there are 2 options to
+deal with the missing data.</li>
+<li>Removing this quantity of missing values would substantially reduced
+the size of our data set by approximately 1067 records.</li>
+<li>Solution: The missing values show no apparent pattern in the data
+set, suggesting that they are randomly missing. Under this condition, it
+is best to impute the missing values with the respective mean ABV and
+IBU values.</li>
+</ul>
+<pre class="r"><code>#Impute NA Values with mean from IBU and ABV columns
+df_bud$IBU[is.na(df_bud$IBU)] &lt;- mean(df_bud$IBU, na.rm = TRUE)
+df_bud$ABV[is.na(df_bud$ABV)] &lt;- mean(df_bud$ABV, na.rm = TRUE)</code></pre>
+</div>
+<div id="how-many-breweries-are-in-each-state" class="section level1">
+<h1>How Many Breweries are in Each State?</h1>
+<pre class="r"><code>breweries$State=factor(breweries$State)
+
+
+breweries_per_state &lt;- breweries %&gt;% group_by(State)%&gt;%tally(name=&quot;count&quot;)
+ 
+breweries_per_state</code></pre>
+<pre><code>## # A tibble: 51 × 2
+##    State count
+##    &lt;fct&gt; &lt;int&gt;
+##  1 &quot; AK&quot;     7
+##  2 &quot; AL&quot;     3
+##  3 &quot; AR&quot;     2
+##  4 &quot; AZ&quot;    11
+##  5 &quot; CA&quot;    39
+##  6 &quot; CO&quot;    47
+##  7 &quot; CT&quot;     8
+##  8 &quot; DC&quot;     1
+##  9 &quot; DE&quot;     2
+## 10 &quot; FL&quot;    15
+## # ℹ 41 more rows</code></pre>
+<pre class="r"><code>ggplot(breweries_per_state, aes(x = State, y = count, fill = State)) +
+  geom_bar(stat=&quot;identity&quot;, width=0.7) +
+  theme(axis.text.x=element_text(angle=45, hjust=1))</code></pre>
+<p><img src="BeerCaseStudy1_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<pre class="r"><code>max(breweries_per_state$count)</code></pre>
+<pre><code>## [1] 47</code></pre>
+<ul>
+<li>The states with the most breweries are Colorado and California.
+Colorado has 47 breweries, while California has 39.Economic fluctuations
+within these 2 states might have the greatest impact on production (like
+droughts, recessions, or supply chain issues)</li>
+</ul>
+</div>
+<div id="calculate-median-alcohol-content-by-state"
+class="section level1">
+<h1>Calculate Median Alcohol Content by State:</h1>
+<pre class="r"><code>#Build a new dataframe for median alcohol content by state
+
+ABV_Summary_by_State&lt;-aggregate(df_bud$ABV, list(df_bud$State),median)
+
+ABV&lt;-data.frame(ABV_Summary_by_State)
+
+names(ABV)[1]&lt;-&quot;State&quot;
+names(ABV)[2]&lt;-&quot;Median_ABV&quot;
+
+# Build a new dataframe for median IBU by state
+IBU_Summary_by_State&lt;-aggregate(df_bud$IBU,list(df_bud$State),median)
+  
+IBU&lt;-data.frame(IBU_Summary_by_State)
+
+names(IBU)[1]&lt;-&quot;State&quot;
+names(IBU)[2]&lt;-&quot;Median_IBU&quot;</code></pre>
+</div>
+<div id="median-ibu-by-state" class="section level1">
+<h1>Median IBU by State</h1>
+<pre class="r"><code>ggplot(IBU, aes(x=State, y=Median_IBU))+
+  geom_bar(stat=&quot;identity&quot;, position=&quot;dodge&quot;, color=&quot;black&quot;)+
+  labs(title=&quot;Median Bitterness (IBU) By State&quot;, xlab=&quot;State&quot;,ylab=&quot;Median_ABV&quot;)+
+  theme_minimal()</code></pre>
+<p><img src="BeerCaseStudy1_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<pre class="r"><code>max(IBU$Median_IBU)</code></pre>
+<pre><code>## [1] 57.5</code></pre>
+<ul>
+<li>The state with the highest IBU (most bitterness) is West Virginia
+with a median IBU of 57.5. Here, we see that the means are all
+homogeneous, and it is in line with the imputation done earlier (nearly
+42% of the data was missing and was imputed with the respective mean
+IBU).</li>
+</ul>
+<p>#Median ABV by State</p>
+<pre class="r"><code>ABV_Plot &lt;- ggplot(ABV, aes(x = factor(State), y = Median_ABV)) +
+  geom_bar(stat=&quot;identity&quot;, width=0.9, color=&quot;black&quot;, position = position_dodge(width = 0.9)) +
+  labs(title = &quot;Median Alcohol Content by State&quot;, x=&quot;State&quot;, y=&quot;Alcohol by Volume (ABV)&quot;) +
+  theme(axis.text.x = element_text(angle = 75, hjust = 1)) 
+
+print(ABV_Plot)</code></pre>
+<p><img src="BeerCaseStudy1_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<pre class="r"><code>max(ABV$Median_ABV)</code></pre>
+<pre><code>## [1] 0.0625</code></pre>
+<ul>
+<li>The maximum median ABV is .0625 for District of Columbia. The states
+with highest alcohol content are 1. District of Columbia, 2. Kentucky,
+3.Michigan, 4. New Mexico, and 5. West Virginia.</li>
+</ul>
+<pre class="r"><code>library(ggplot2)
+
+IBU_Plot &lt;- ggplot(IBU, aes(x = State, y = Median_IBU)) +
+  geom_bar(stat = &quot;identity&quot;, width = 0.7, fill = &quot;blue&quot;) +  # Adjusted width and added fill color
+  labs(title = &quot;Median IBU by State&quot;) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+IBU_Plot</code></pre>
+<p><img src="BeerCaseStudy1_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+</div>
+<div id="state-with-maximum-abv" class="section level1">
+<h1>State with Maximum ABV</h1>
+<pre class="r"><code>max_abv_row &lt;- df_bud[which.max(df_bud$ABV), ]
+
+# Print the state with the maximum ABV
+print(&quot;State with Maximum ABV:&quot;)</code></pre>
+<pre><code>## [1] &quot;State with Maximum ABV:&quot;</code></pre>
+<pre class="r"><code>print(max_abv_row$State)</code></pre>
+<pre><code>## [1] &quot; CO&quot;</code></pre>
+<ul>
+<li>This is the max ABV in general from the data set.This is not the max
+of median ABV. It is from Boulder, CO.</li>
+</ul>
+<p>#State with Max Median ABV</p>
+<pre class="r"><code>ABV[ABV$Median_ABV==max(ABV$Median_ABV),]</code></pre>
+<pre><code>##   State Median_ABV
+## 8    DC     0.0625</code></pre>
+<ul>
+<li>As mentioned earlier, the state with the max median ABV is DC with
+.0625.</li>
+</ul>
+</div>
+<div id="state-with-the-most-bitter-beer-by-ibu" class="section level1">
+<h1>State with the Most Bitter Beer (by IBU)</h1>
+<pre class="r"><code>max_IBU_row &lt;- df_bud[which.max(df_bud$IBU), ]
+
+# Print the state with the maximum ABV
+print(&quot;State with Maximum IBU:&quot;)</code></pre>
+<pre><code>## [1] &quot;State with Maximum IBU:&quot;</code></pre>
+<pre class="r"><code>print(max_IBU_row$State) </code></pre>
+<pre><code>## [1] &quot; OR&quot;</code></pre>
+<ul>
+<li>The state with the most bitter beer from the data set is Oregon.
+This is not the max of median IBU.</li>
+</ul>
+</div>
+<div id="state-with-highest-median-bitterness" class="section level1">
+<h1>State with Highest Median Bitterness</h1>
+<pre class="r"><code>IBU[IBU$Median_IBU==max(IBU$Median_IBU),] </code></pre>
+<pre><code>##    State Median_IBU
+## 50    WV       57.5</code></pre>
+<ul>
+<li>As mentioned earlier, the state with the highest median bitterness
+is West Virginia with a median IBU of 57.5.</li>
+</ul>
+</div>
+<div id="abv-distribution" class="section level1">
+<h1>ABV Distribution:</h1>
+<pre class="r"><code>df_bud %&gt;%
+  ggplot(aes(x = ABV)) +
+  geom_histogram(binwidth = 0.001, fill = &quot;purple&quot;, color = &quot;black&quot;, alpha = 0.5) +
+  geom_density(color = &quot;green&quot;) +  
+  labs(title = &quot;Distribution of Alcohol by Volume&quot;, xlab=&quot;ABV&quot;, ylab=&quot;Count&quot;)</code></pre>
+<p><img src="BeerCaseStudy1_files/figure-html/unnamed-chunk-17-1.png" width="672" />
+- Here we see that most beers fall around the .05 ABV mark. The
+distribution is right skewed, and not a normal distribution or bell
+curve.</p>
+<p>#Observations on Bitterness vs ABV:</p>
+<pre class="r"><code>#ggplot(df_bud, aes(x=ABV, y=IBU, na.rm=TRUE))+ geom_point(aes(color=factor(Style)))+ stat_smooth(method=&quot;lm&quot;,linewidth=1)
+
+#ggplot(df_bud, aes(x=IBU, y=ABV, na.rm=TRUE))+
+  #geom_point(aes(color=factor(Style)))+ stat_smooth(method=&quot;lm&quot;,size=1)+ labs(title=&quot;IBU vs ABV&quot;)
+
+df_bud %&gt;% ggplot(aes (x=ABV, y = IBU, color = Ounces)) + geom_point(alpha = 0.7) + labs(title = &quot;Scatterplot of ABV v. IBU&quot;, x = &quot;ABV&quot;, y = &quot;IBU&quot;) + stat_smooth(method = &#39;lm&#39;, linewidth = 1)</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<pre><code>## Warning: The following aesthetics were dropped during statistical transformation: colour
+## ℹ This can happen when ggplot fails to infer the correct grouping structure in the data.
+## ℹ Did you forget to specify a `group` aesthetic or to convert a numerical variable into a
+##   factor?</code></pre>
+<p><img src="BeerCaseStudy1_files/figure-html/unnamed-chunk-18-1.png" width="672" />
+- Here we can see what seems to be a slight positive linear trend
+showing that as the alcohol content (ABV) increases, the IBU slightly
+increases as well. There is a constant line also seen, with some
+outliers too. We can also see that most beers are 10oz. Most beers seem
+to fall around an ABV of 0.05, supporting what was seen in the
+distribution of ABV graph.</p>
+</div>
+<div
+id="using-ibu-and-abv-to-predict-whether-a-beer-is-an-ale-using-k-nearest-neighbors-knn"
+class="section level1">
+<h1>Using IBU and ABV to Predict Whether a Beer is an Ale Using K
+Nearest Neighbors (KNN)</h1>
+<pre class="r"><code># We will first filter out all styles that are not Ales 
+
+df_Ales &lt;- df_bud %&gt;% filter(grepl(&quot;Ale|IPA|PA&quot;, Style, ignore.case = TRUE))
+
+
+#We will classify out filtered beers by &quot;IPA&quot; or &quot;Not_IPA&quot;
+df_Ales$Is_IPA &lt;- ifelse(grepl(&quot;Indian Pale Ale|IPA&quot;, df_Ales$Style, ignore.case = TRUE), &quot;IPA&quot;, &quot;Non_IPA&quot;)
+
+df_Ales$Is_IPA&lt;-factor(df_Ales$Is_IPA) </code></pre>
+<pre class="r"><code>iterations &lt;- 500
+numks &lt;- 10
+percentsplit &lt;- 0.8
+
+# Initialize an empty data frame to store results
+results_df &lt;- data.frame(accuracy = numeric(0), k = numeric(0))
+
+for (j in 1:iterations) {
+  trainIndices &lt;- sample(1:nrow(df_Ales), round(percentsplit * nrow(df_Ales)))
+  train &lt;- df_Ales[trainIndices, ]
+  test &lt;- df_Ales[-trainIndices, ]
+  
+  for (i in 1:numks) {
+    classifications &lt;- knn(train[, c(&quot;ABV&quot;, &quot;IBU&quot;)], test[, c(&quot;ABV&quot;, &quot;IBU&quot;)], train$Is_IPA, prob = TRUE, k = i)
+    CM &lt;- confusionMatrix(table(classifications, test$Is_IPA))
+    
+    # Append the accuracy and k value to the results data frame
+    results_df &lt;- rbind(results_df, data.frame(accuracy = CM$overall[&quot;Accuracy&quot;], k = i))
+  } 
+}
+
+results_df&lt;-aggregate(results_df$accuracy,list(results_df$k),mean)
+
+results_df_named&lt;-results_df
+names(results_df_named) &lt;- c(&quot;k&quot;, &quot;Average_Accuracy&quot;)</code></pre>
+<pre class="r"><code>#We will build an Acc vs K plot to assess optimal k
+
+ggplot(results_df_named, aes(x = k, y = `Average_Accuracy`)) +
+  geom_line()+
+  labs(title = &quot;Average Accuracy vs K&quot;, xlab=&quot;k&quot;, ylab=&quot;Average Accuracy&quot;)</code></pre>
+<p><img src="BeerCaseStudy1_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
+</div>
+<div id="accuracy-plot-shows-5-as-optimal-k" class="section level1">
+<h1>Accuracy Plot Shows 5 as Optimal K:</h1>
+<pre class="r"><code>trainIndex &lt;- sample(1:nrow(df_Ales), round(percentsplit * nrow(df_Ales)))
+  train &lt;- df_Ales[trainIndex, ]
+  test &lt;- df_Ales[-trainIndex, ]
+  
+    classifications &lt;- knn(train[, c(&quot;ABV&quot;, &quot;IBU&quot;)], test[, c(&quot;ABV&quot;, &quot;IBU&quot;)], train$Is_IPA, prob = TRUE, k = 5)
+    CM &lt;- confusionMatrix(table(classifications, test$Is_IPA))
+
+CM</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##                
+## classifications IPA Non_IPA
+##         IPA      79      27
+##         Non_IPA  25     185
+##                                           
+##                Accuracy : 0.8354          
+##                  95% CI : (0.7899, 0.8746)
+##     No Information Rate : 0.6709          
+##     P-Value [Acc &gt; NIR] : 3.175e-11       
+##                                           
+##                   Kappa : 0.6292          
+##                                           
+##  Mcnemar&#39;s Test P-Value : 0.8897          
+##                                           
+##             Sensitivity : 0.7596          
+##             Specificity : 0.8726          
+##          Pos Pred Value : 0.7453          
+##          Neg Pred Value : 0.8810          
+##              Prevalence : 0.3291          
+##          Detection Rate : 0.2500          
+##    Detection Prevalence : 0.3354          
+##       Balanced Accuracy : 0.8161          
+##                                           
+##        &#39;Positive&#39; Class : IPA             
+## </code></pre>
+<ul>
+<li>Final KNN model delivers 83.86% accuracy. Accuracy may differ with
+higher iterations during training. Accuracy could also be higher if
+there were not missing values present in the ABV and IBU columns.</li>
+</ul>
+</div>
+<div id="gathering-additional-insights" class="section level1">
+<h1>Gathering Additional Insights</h1>
+<pre class="r"><code># Renu charted ABV associated with different styles of beer
+df_bud %&gt;% ggplot(aes(x = ABV, y = State, color = Ounces)) + geom_point(alpha = 0.7) + 
+  labs(title = &quot;ABV by Style&quot;, x = &quot;ABV&quot;, y = &quot;Style&quot;)</code></pre>
+<p><img src="BeerCaseStudy1_files/figure-html/unnamed-chunk-23-1.png" width="672" />
+- Here, we can see that beers produced by most states are 10 oz. They
+also generally fall between a range of 0.05 to 0.07 ABV.</p>
+<pre class="r"><code># Renu then charted the average volume in Ounces per beer by State. The results suggest Colorado (CO) produces the largest beers
+df_bud %&gt;% ggplot(aes(x = State, color = Ounces)) + geom_bar(alpha = 0.7) + 
+  labs(title = &quot;Ounces by State&quot;, x = &quot;State&quot;, y = &quot;Ounces&quot;) + theme_minimal()</code></pre>
+<pre><code>## Warning: The following aesthetics were dropped during statistical transformation: colour
+## ℹ This can happen when ggplot fails to infer the correct grouping structure in the data.
+## ℹ Did you forget to specify a `group` aesthetic or to convert a numerical variable into a
+##   factor?</code></pre>
+<p><img src="BeerCaseStudy1_files/figure-html/unnamed-chunk-24-1.png" width="672" />
+- It looks like Colorado and California produce the beer with the most
+volume (Oz); they also have the most breweries (as mentioned earlier).
+We think this would be the top 2 keystone states for production within
+the US. Something to keep in mind regarding supply chain issues if they
+were to arise.</p>
+<pre class="r"><code># Renu then sought to compare the mean ounces associated with each style of beer
+df_bud %&gt;%
+
+  ggplot(aes(x = reorder(Style, -Ounces), y = Ounces)) +
+
+  geom_bar(stat = &quot;identity&quot;, alpha = 0.7) +
+
+  labs(title = &quot;Ounces by Style&quot;, x = &quot;Style&quot;, y = &quot;Ounces&quot;) +
+
+  theme_minimal() +
+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) </code></pre>
+<p><img src="BeerCaseStudy1_files/figure-html/unnamed-chunk-25-1.png" width="672" /></p>
+<ul>
+<li>It looks like the American IPA style has the most ounces (style
+wise); American Pale Ale is runner up.</li>
+</ul>
+<pre class="r"><code># Joel built a data frame of the % ABV misreports per State
+eda_bud&lt;-merge(beers,breweries, by=&quot;Brew_ID&quot;)
+
+eda_bud&lt;-eda_bud%&gt;%mutate(ABV_Errors=ifelse(is.na(ABV), 1, 0))
+
+eda_bud&lt;-eda_bud%&gt;%mutate(IBU_Errors=ifelse(is.na(IBU), 1,0))
+
+
+agg_ABV_NA&lt;- aggregate(eda_bud$ABV_Errors, by=list(eda_bud$State), FUN=sum)
+
+colnames(agg_ABV_NA)&lt;-c(&quot;State&quot;,&quot;Brews_With_Missing_ABV&quot;)
+
+totalbeers&lt;-(aggregate(eda_bud$ABV_Errors,by=list(eda_bud$State), FUN=length))
+
+colnames(totalbeers)&lt;-c(&quot;State&quot;,&quot;Total_Brews_From_State&quot;)
+
+
+agg_ABV_NA&lt;-data.frame(agg_ABV_NA)
+
+
+agg_ABV_NA$Percent&lt;-agg_ABV_NA$Brews_With_Missing_ABV/totalbeers$Total_Brews_From_State
+
+
+ABV_NAs_Per_State&lt;-merge(agg_ABV_NA,totalbeers, by=&quot;State&quot;)</code></pre>
+<pre class="r"><code># Joel then built a scatterplot comparing variety of beers produced to percent of ABVs misreported
+
+ggplot(ABV_NAs_Per_State, aes(x = Total_Brews_From_State, y = Percent)) +
+  geom_point() +
+  geom_smooth(method=lm)+
+  labs(x = &quot;Brews Produced&quot;, y = &quot;Percentage of Brews With Missing ABVs&quot;)</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="BeerCaseStudy1_files/figure-html/unnamed-chunk-27-1.png" width="672" />
+- There is not a clear linear relationship present between the missing
+values for ABV based on the number or variety of brews produced.</p>
+</div>
+<div id="ibu-misreport-was-compared-to-beer-variety-by-state"
+class="section level1">
+<h1>IBU Misreport was Compared to Beer Variety by State</h1>
+<pre class="r"><code># Joel built a dataframe of the % ABV misreports per State
+eda_bud&lt;-merge(beers,breweries, by=&quot;Brew_ID&quot;)
+
+eda_bud&lt;-eda_bud%&gt;%mutate(ABV_Errors=ifelse(is.na(ABV), 1, 0))
+
+
+
+eda_bud&lt;-eda_bud%&gt;%mutate(IBU_Errors=ifelse(is.na(IBU), 1,0))
+
+
+agg_IBU_NA&lt;- aggregate(eda_bud$IBU_Errors, by=list(eda_bud$State), FUN=sum)
+
+
+colnames(agg_IBU_NA)&lt;-c(&quot;State&quot;,&quot;Brews_With_Missing_IBU&quot;)
+
+totalbeers&lt;-(aggregate(eda_bud$IBU_Errors,by=list(eda_bud$State), FUN=length))
+
+colnames(totalbeers)&lt;-c(&quot;State&quot;,&quot;Total_Brews_From_State&quot;)
+
+
+agg_IBU_NA&lt;-data.frame(agg_IBU_NA)
+
+
+agg_IBU_NA$Percent&lt;-agg_IBU_NA$Brews_With_Missing_IBU/totalbeers$Total_Brews_From_State
+
+
+IBU_NAs_Per_State&lt;-merge(agg_IBU_NA,totalbeers, by=&quot;State&quot;)
+
+head(IBU_NAs_Per_State)</code></pre>
+<pre><code>##   State Brews_With_Missing_IBU   Percent Total_Brews_From_State
+## 1    AK                      8 0.3200000                     25
+## 2    AL                      1 0.1000000                     10
+## 3    AR                      4 0.8000000                      5
+## 4    AZ                     23 0.4893617                     47
+## 5    CA                     48 0.2622951                    183
+## 6    CO                    119 0.4490566                    265</code></pre>
+<pre class="r"><code>ggplot(IBU_NAs_Per_State, aes(x = Total_Brews_From_State, y = Percent)) +
+  geom_point() +
+  geom_smooth(method=lm)+
+  labs(title=&quot;IBU Misreport Frequency vs Beer Variety&quot;, x = &quot;Brews Produced&quot;, y = &quot;Percentage of Brews With Missing IBUs&quot;)</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="BeerCaseStudy1_files/figure-html/unnamed-chunk-28-1.png" width="672" />
+- There is a slightly positive linear relationship present. We cannot
+determine anything based of a visual, and for the future, could do some
+regression analysis to investigate and determine if there is a
+correlation between the percentage of missing IBUs based off the number
+or variety of brews produced.</p>
+</div>
+<div id="thank-you" class="section level1">
+<h1>Thank You</h1>
+<p>This concludes our presentation and analysis. Thank you for your time
+and we look forward to empowering Budweiser with data-driven wisdom. If
+you have any questions, please feel free to reach out to any of us, our
+emails are in the attached PowerPoint presentation. Thank you!</p>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
